@@ -143,4 +143,19 @@ export class Canvas {
 	get scale() {
 		return this._scale;
 	}
+
+	public translateX(value: number) {
+		this._offset.addX(value);
+	}
+	public translateY(value: number) {
+		this._offset.addY(value);
+	}
+	public translate(value: Vector) {
+		this._offset.addX(value.x);
+		this._offset.addY(value.y);
+	}
+
+	get element(): HTMLCanvasElement {
+		return this.$element;
+	}
 }

@@ -20,10 +20,7 @@ export interface ILandscapeLayerOptions {
 	roughness: number;
 	points: Vector[];
 	color: string;
-}
-
-export interface ILandscapeOptions {
-	layers: number;
+	gap: number;
 }
 
 export class LandscapeLayer {
@@ -32,6 +29,14 @@ export class LandscapeLayer {
 	private points: Vector[];
 
 	private color: string;
+
+	private shiftIndex: number = 0;
+	private gap: number;
+	private endPoint: Vector;
+
+	get width(): number {
+		return this.endPoint.x;
+	}
 
 	constructor(options: ILandscapeLayerOptions) {
 		this.roughness = options.roughness;
@@ -43,6 +48,21 @@ export class LandscapeLayer {
 			this.heightMap[this.points[i].x] = this.points[i].y;
 			this.generate(this.points[i - 1].x, this.points[i].x)
 		}
+		this.endPoint = this.points[this.points.length - 1].copy();
+		this.gap = options.gap;
+	}
+
+	public increase() {
+		let nextPoint = this.points[this.shiftIndex];
+		const dx = this.shiftIndex ?
+			nextPoint.x - this.points[this.shiftIndex - 1].x :
+			this.gap;
+		this.shiftIndex = (this.shiftIndex + 1) % this.points.length;
+		let endX = this.endPoint.x + dx;
+		this.heightMap[endX] = nextPoint.y;
+		this.generate(this.endPoint.x, endX);
+		this.endPoint.x = endX;
+		this.endPoint.y = nextPoint.y;
 	}
 
 	public generate(start: number, end: number) {
@@ -62,12 +82,51 @@ export class LandscapeLayer {
 		canvas.beginPath();
 		canvas.moveTo(0, 0);
 		for (let i = start; i <= end; ++i) {
-			canvas.lineTo(i, this.heightMap[i]);
+			canvas.lineTo(i - start, this.heightMap[i]);
 			if (this.heightMap[i] === undefined) {
 			}
 		}
-		canvas.lineTo(end, 0);
+		canvas.lineTo(end - start, 0);
 		canvas.lineTo(0, 0);
 		canvas.fill(this.color);
+	}
+}
+let co = 0;
+export interface ILandscapeOptions {
+	layers: ILandscapeLayerOptions[];
+	width: number;
+}
+
+export class Landscape {
+	private layers: LandscapeLayer[];
+	private width: number;
+	private screenSize: number;
+	private offset: number = 0;
+
+	constructor(options: ILandscapeOptions) {
+		this.layers = [];
+		this.width = options.width;
+		this.screenSize = options.width;
+		options.layers.forEach(layerOptions => {
+			this.layers.push(new LandscapeLayer(layerOptions));
+		});
+	}
+	public draw(canvas: Canvas) {
+		for (const layer of this.layers) {
+			layer.draw(this.offset, this.offset + this.screenSize, canvas);
+		}
+	}
+	public translate(value: number) {
+		if (this.offset > 0 || value > 0) {
+			this.offset += value;
+		}
+		if (this.offset + this.screenSize > this.width) {
+			this.width = this.offset + this.screenSize;
+			for (const layer of this.layers) {
+				while (this.width > layer.width) {
+					layer.increase();
+				}
+			}
+		}
 	}
 }

@@ -33,6 +33,9 @@ export default class Vector {
 		this._x = value;
 		this.updatePolars();
 	}
+	/**
+	 * Increases X value and returns same object
+	 */
 	public addX(value: number): Vector {
 		this._x += value;
 		return this;
@@ -44,33 +47,53 @@ export default class Vector {
 		this._y = value;
 		this.updatePolars();
 	}
+	/**
+	 * Increases Y value and returns same object
+	 */
 	public addY(value: number): Vector {
 		this._y += value;
 		return this;
 	}
-
+	/**
+	 * return squared length
+	 */
 	get length2(): number {
 		return this._x * this._x + this._y * this._y;
 	}
 
+	/**
+	 * Multiplies both coordinates by given value
+	 */
 	public increase(multiplier: number): Vector {
 		this._x *= multiplier;
 		this._y *= multiplier;
 		return this;
 	}
 
+	/**
+	 * Returns sum of two vectors as new object
+	 */
 	public add(other: Vector): Vector {
 		return new Vector(this._x + other.x, this._y + other.y);
 	}
 
+	/**
+	 * Returns difference of two vectors as new object
+	 */
 	public subtract(other: Vector): Vector {
 		return new Vector(this._x - other.x, this._y - other.y);
 	}
 
+	/**
+	 * Returns scalar product
+	 */
 	public multiply(other: Vector): number {
 		return this._x * other.x + this._y * other.y;
 	}
 
+	/**
+	 * Returns copy as new object
+	 */
 	public copy(): Vector {
 		return new Vector(this._x, this._y);
 	}
