@@ -16,3 +16,7 @@ export function getValue<T>(object: any, propertyName: string, defaultValue?: T)
 
 	return propertyValue;
 }
+
+export function randomValue(min: number, max: number) {
+	return min + Math.random() * (max - min);
+}

@@ -52,6 +52,7 @@ export class Canvas {
 
 		this.createElement(options);
 		this.ctx = this.$element.getContext('2d');
+		this.clear();
 	}
 
 	private createElement(options: ICanvasOptions) {
@@ -78,26 +79,49 @@ export class Canvas {
 		this.ctx.strokeRect(0, 0, this.width, this.height);
 	}
 
-	private getX(point: Vector): number {
+	private getX(value: number): number {
+		return this._offset.x + this._scale * value;
+	}
+	private getY(value: number): number {
+		return this.height - (this._offset.y + this._scale * value);
+	}
+	private getXV(point: Vector): number {
 		return this._offset.x + this._scale * point.x;
 	}
-	private getY(point: Vector): number {
-		return this._offset.y + this._scale * point.y;
+	private getYV(point: Vector): number {
+		return this.height - (this._offset.y + this._scale * point.y);
 	}
 
-	public line(p1: Vector, p2: Vector): void {
+	public lineV(p1: Vector, p2: Vector): void {
 		if (!this.checkPoint(p1) && this.checkPoint(p2)) {
 			return;
 		}
-		this.ctx.moveTo(this.getX(p1), this.getY(p1));
-		this.ctx.lineTo(this.getX(p2), this.getY(p2));
+		this.ctx.moveTo(this.getXV(p1), this.getYV(p1));
+		this.ctx.lineTo(this.getXV(p2), this.getYV(p2));
 	}
-	public moveTo(point: Vector): void {
-		this.ctx.moveTo(this.getX(point), this.getY(point));
+
+	public moveTo(x: number, y: number): void {
+		this.ctx.moveTo(this.getX(x), this.getY(y));
 	}
-	public lineTo(point: Vector): void {
-		this.ctx.lineTo(this.getX(point), this.getY(point));
+	public lineTo(x: number, y: number): void {
+		this.ctx.lineTo(this.getX(x), this.getY(y));
 	}
+
+	public moveToV(point: Vector): void {
+		this.ctx.moveTo(this.getXV(point), this.getYV(point));
+	}
+	public lineToV(point: Vector): void {
+		this.ctx.lineTo(this.getXV(point), this.getYV(point));
+	}
+
+	public fillCirlce(center: Vector, radius: number, color: string) {
+		this.ctx.beginPath();
+		this.ctx.fillStyle = color;
+		this.ctx.ellipse(this.getXV(center), this.getYV(center), radius, radius, Math.PI * 2, 0, Math.PI * 2);
+		this.ctx.fill();
+	}
+
+
 	public beginPath(): void {
 		this.ctx.beginPath();
 	}
