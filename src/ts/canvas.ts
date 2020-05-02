@@ -159,9 +159,9 @@ export class Canvas {
 		return this.$element;
 	}
 
-	public getCursorVector(x: number, y: number, offsetX: number = 0) {
+	public getCursorVector(x: number, y: number) {
 		return new Vector(
-			x - this.$element.offsetLeft + offsetX,
+			x - this.$element.offsetLeft,
 			this.height - (y - this.$element.offsetTop)
 		)
 	}
