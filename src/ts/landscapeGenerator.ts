@@ -2,6 +2,7 @@
 import Vector from './vector';
 import { Canvas } from './canvas';
 import { randomValue } from './utils';
+import RGBColor from './rgbcolor';
 
 export function midpointDisplacement(heightMap: number[], start: number, end: number, roughness: number) {
 	if (start >= end - 1) {
@@ -19,7 +20,8 @@ export function midpointDisplacement(heightMap: number[], start: number, end: nu
 export interface ILandscapeLayerOptions {
 	roughness: number;
 	points: Vector[];
-	color: string;
+	color: RGBColor;
+	hoverColor: RGBColor;
 	gap: number;
 }
 
@@ -29,10 +31,16 @@ export class LandscapeLayer {
 	private points: Vector[];
 
 	private color: string;
+	private hoverColor: string;
 
 	private shiftIndex: number = 0;
 	private gap: number;
 	private endPoint: Vector;
+	private _hover: boolean = false;
+
+	set hover(value: boolean) {
+		this._hover = value;
+	}
 
 	get width(): number {
 		return this.endPoint.x;
@@ -43,7 +51,9 @@ export class LandscapeLayer {
 		this.points = options.points;
 		this.heightMap = [];
 		this.heightMap[this.points[0].x] = this.points[0].y;
-		this.color = options.color;
+		this.color = options.color.hexString();
+		this.hoverColor = options.hoverColor.hexString();
+	
 		for (let i = 1; i < options.points.length; ++i) {
 			this.heightMap[this.points[i].x] = this.points[i].y;
 			this.generate(this.points[i - 1].x, this.points[i].x)
@@ -52,7 +62,7 @@ export class LandscapeLayer {
 		this.gap = options.gap;
 	}
 
-	public increase() {
+	public increase(): void {
 		let nextPoint = this.points[this.shiftIndex];
 		const dx = this.shiftIndex ?
 			nextPoint.x - this.points[this.shiftIndex - 1].x :
@@ -65,7 +75,7 @@ export class LandscapeLayer {
 		this.endPoint.y = nextPoint.y;
 	}
 
-	public generate(start: number, end: number) {
+	public generate(start: number, end: number): void {
 		if (start >= end - 1) {
 			return;
 		}
@@ -78,7 +88,7 @@ export class LandscapeLayer {
 		this.generate(mid, end);
 	}
 
-	public draw(start: number, end: number, canvas: Canvas) {
+	public draw(start: number, end: number, canvas: Canvas): void {
 		canvas.beginPath();
 		canvas.moveTo(0, 0);
 		for (let i = start; i <= end; ++i) {
@@ -88,10 +98,19 @@ export class LandscapeLayer {
 		}
 		canvas.lineTo(end - start, 0);
 		canvas.lineTo(0, 0);
-		canvas.fill(this.color);
+		canvas.fill(this._hover ? this.hoverColor : this.color);
 	}
+
+	public checkPoint(point: Vector): boolean {
+		return point.x >= 0 &&
+			point.x <= this.width &&
+			point.y <= this.heightMap[point.x];
+	}
+
 }
+
 let co = 0;
+
 export interface ILandscapeOptions {
 	layers: ILandscapeLayerOptions[];
 	width: number;
@@ -102,6 +121,7 @@ export class Landscape {
 	private width: number;
 	private screenSize: number;
 	private offset: number = 0;
+	private hoveredLayer: LandscapeLayer;
 
 	constructor(options: ILandscapeOptions) {
 		this.layers = [];
@@ -111,12 +131,12 @@ export class Landscape {
 			this.layers.push(new LandscapeLayer(layerOptions));
 		});
 	}
-	public draw(canvas: Canvas) {
+	public draw(canvas: Canvas): void {
 		for (const layer of this.layers) {
 			layer.draw(this.offset, this.offset + this.screenSize, canvas);
 		}
 	}
-	public translate(value: number) {
+	public translate(value: number): void {
 		if (this.offset > 0 || value > 0) {
 			this.offset += value;
 		}
@@ -127,6 +147,33 @@ export class Landscape {
 					layer.increase();
 				}
 			}
+		}
+	}
+	private getPointLayer(point: Vector): LandscapeLayer {
+		for (let i = this.layers.length - 1; i >= 0; --i) {
+			if (this.layers[i].checkPoint(point)) {
+				return this.layers[i];
+			}
+		}
+		return null;
+	}
+	public hoverLayer(point: Vector) {
+		const layer = this.getPointLayer(point);
+		if (this.hoveredLayer === layer) {
+			return;
+		}
+		if (this.hoveredLayer) {
+			this.hoveredLayer.hover = false;
+		}
+		if (layer) {
+			layer.hover = true;
+		}
+		this.hoveredLayer = layer;
+	}
+	public removeHover() {
+		if (this.hoveredLayer) {
+			this.hoveredLayer.hover = false;
+			this.hoveredLayer = null;
 		}
 	}
 }

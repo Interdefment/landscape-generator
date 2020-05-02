@@ -6,8 +6,8 @@ import Vector from './ts/vector';
 import { Canvas, ICanvasOptions } from './ts/canvas';
 import * as LSG from './ts/landscapeGenerator';
 import * as utils from './ts/utils';
-
-
+import { layersOptions } from './ts/data';
+import RGBColor from './ts/rgbcolor';
 
 
 function render(canvas: Canvas, landscape: LSG.Landscape) {
@@ -24,49 +24,7 @@ function main() {
 		width: 1200,
 		backgroundColor: 'rgb(135, 206, 250)'
 	};
-	const layersOptions: LSG.ILandscapeLayerOptions[] = [
-		{
-			roughness: 1,
-			points: [
-				new Vector(0, utils.randomValue(100, 600)),
-				new Vector(1200, utils.randomValue(100, 500)),
-			],
-			color: '#466e9c',
-			gap: 300,
-		},
-		{
-			roughness: 0.7,
-			points: [
-				new Vector(0, 200),
-				new Vector(300, utils.randomValue(500, 600)),
-				new Vector(450, utils.randomValue(150, 250)),
-				new Vector(600, utils.randomValue(50, 150)),
-				new Vector(900, utils.randomValue(500, 600)),
-				new Vector(1200, utils.randomValue(100, 500)),
-			],
-			color: '#321414',
-			gap: 300,
-		},
-		{
-			roughness: 0.5,
-			points: [
-				new Vector(0, 200),
-				new Vector(300, utils.randomValue(100, 300)),
-				new Vector(550, utils.randomValue(150, 240)),
-				new Vector(600, utils.randomValue(80, 120)),
-				new Vector(900, utils.randomValue(200, 300)),
-				new Vector(1200, utils.randomValue(100, 300)),
-			],
-			color: '#594630',
-			gap: 300,
-		},
-		{
-			roughness: 0.04,
-			points: [ new Vector(0, 100), new Vector(600, 50), new Vector(1200, 100),  ],
-			color: '#00693e',
-			gap: 300,
-		},
-	]
+
 	const canvas = new Canvas(canvasOptions);
 	const landscapeOptions: LSG.ILandscapeOptions = {
 		layers: layersOptions,
@@ -90,7 +48,6 @@ function main() {
 		}
 		landscape.translate(value);
 		offsetX += value;
-		render(canvas, landscape);
 	}
 
 	canvas.element.addEventListener('mousedown', function(e) {
@@ -103,6 +60,8 @@ function main() {
 
 	canvas.element.addEventListener('mouseleave', function(e) {
 		cursorX = null;
+		landscape.removeHover();
+		render(canvas, landscape);
 	});
 
 	canvas.element.addEventListener('mousemove', function(e) {
@@ -110,12 +69,16 @@ function main() {
 			translateScreen(cursorX - e.clientX);
 			cursorX = e.clientX;
 		}
+		const cursor = canvas.getCursorVector(e.clientX, e.clientY, offsetX);
+		landscape.hoverLayer(cursor);
+		render(canvas, landscape);
 	});
 
 	document.addEventListener('keydown', function(e: KeyboardEvent) {
 		if (e.keyCode == 39 && moveScreen === null) { // Right
 			moveScreen = setInterval(function canvasTranslation() {
 				translateScreen(translateSpeed);
+				render(canvas, landscape);
 			}, 10);
 		}
 		if (e.keyCode == 37 && moveScreen === null && offsetX > 0) { // Left
@@ -124,6 +87,7 @@ function main() {
 					clearInterval(moveScreen);
 				}
 				translateScreen(-translateSpeed);
+				render(canvas, landscape);
 			}, 1);
 		}
 	});

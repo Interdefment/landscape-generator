@@ -158,4 +158,11 @@ export class Canvas {
 	get element(): HTMLCanvasElement {
 		return this.$element;
 	}
+
+	public getCursorVector(x: number, y: number, offsetX: number = 0) {
+		return new Vector(
+			x - this.$element.offsetLeft + offsetX,
+			this.height - (y - this.$element.offsetTop)
+		)
+	}
 }
