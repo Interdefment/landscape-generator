@@ -15,6 +15,7 @@ export const layersOptions: ILandscapeLayerOptions[] = [
 		color: RGBColor.parseString('#9e62cc'),
 		hoverColor: RGBColor.parseString('#9e62cc').add(30),
 		gap: 300,
+		pointRadius: 8,
 	},
 	{
 		roughness: 0.7,
@@ -29,6 +30,7 @@ export const layersOptions: ILandscapeLayerOptions[] = [
 		color: RGBColor.parseString('#824f8a'),
 		hoverColor: RGBColor.parseString('#824f8a').add(30),
 		gap: 300,
+		pointRadius: 8,
 	},
 	{
 		roughness: 0.15,
@@ -43,6 +45,7 @@ export const layersOptions: ILandscapeLayerOptions[] = [
 		color: RGBColor.parseString('#441c63'),
 		hoverColor: RGBColor.parseString('#441c63').add(30),
 		gap: 300,
+		pointRadius: 8,
 	},
 	{
 		roughness: 0.04,
@@ -51,5 +54,6 @@ export const layersOptions: ILandscapeLayerOptions[] = [
 		color: RGBColor.parseString('#310752'),
 		hoverColor: RGBColor.parseString('#310752').add(30),
 		gap: 300,
+		pointRadius: 8,
 	},
 ]

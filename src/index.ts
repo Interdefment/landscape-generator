@@ -8,92 +8,119 @@ import * as LSG from './ts/landscapeGenerator';
 import * as utils from './ts/utils';
 import { layersOptions } from './ts/data';
 import RGBColor from './ts/rgbcolor';
+import { Modal } from './ts/modal';
 
 
-function render(canvas: Canvas, landscape: LSG.Landscape) {
+const canvasOptions: ICanvasOptions = {
+	rootSelector: '#root',
+	id: 'canvas',
+	height: 600,
+	width: 1200,
+	backgroundColor: '#f0cba3'
+};
+
+const canvas = new Canvas(canvasOptions);
+const landscapeOptions: LSG.ILandscapeOptions = {
+	layers: layersOptions,
+	width: canvasOptions.width,
+	moveSpeed: 3,
+	height: canvasOptions.height,
+}
+const landscape = new LSG.Landscape(landscapeOptions);
+
+function render() {
 	canvas.clear();
-	canvas.fillCirlce(new Vector(50, 500), 30, 'rgb(255, 255, 255)')
+	canvas.fillCirlce(new Vector(50, 500), 30, 'rgb(255, 255, 255)');
+	landscape.update();
 	landscape.draw(canvas);
+	requestAnimationFrame(render);
 }
 
 function main() {
-	const canvasOptions: ICanvasOptions = {
-		rootSelector: '#root',
-		id: 'canvas',
-		height: 600,
-		width: 1200,
-		backgroundColor: '#f0cba3'
-	};
 
-	const canvas = new Canvas(canvasOptions);
-	const landscapeOptions: LSG.ILandscapeOptions = {
-		layers: layersOptions,
-		width: 1200,
-		moveSpeed: 3,
-	}
-	const landscape = new LSG.Landscape(landscapeOptions);
-
-	let moveScreen: NodeJS.Timeout = null;
-
-	let cursorX: number = null;
+	let cursor: Vector = new Vector();
 
 	canvas.element.addEventListener('mousedown', function(e) {
-		cursorX = e.clientX;
+		cursor.x = e.clientX;
+		cursor.y = e.clientY;
+		landscape.setDragMode(canvas, cursor);
+	});
+
+	canvas.element.addEventListener('click', function(e) {
+		const cursor = landscape.getCursorPoint(e.clientX, e.clientY, canvas);
+		if (e.ctrlKey) {
+			landscape.setActiveLayer(cursor);
+		}
+		landscape.unsetDragMode();
 	});
 
 	canvas.element.addEventListener('mouseup', function(e) {
-		cursorX = null;
+		landscape.unsetDragMode();
 	});
 
 	canvas.element.addEventListener('mouseleave', function(e) {
-		cursorX = null;
 		landscape.removeHover();
-		render(canvas, landscape);
+		landscape.unsetDragMode();
 	});
 
-	canvas.element.addEventListener('mousemove', function(e) {
-		if (cursorX) {
-			landscape.translate(cursorX - e.clientX);
-			cursorX = e.clientX;
+	canvas.element.addEventListener('dblclick', function(e) {
+		if (e.ctrlKey) {
+			return;
 		}
-		const cursor = landscape.getCursorPoint(e.clientX, e.clientY, canvas);
-		landscape.hoverLayer(cursor);
-		render(canvas, landscape);
+		cursor.x = e.clientX;
+		cursor.y = e.clientY;
+		const result = landscape.doubleClick(cursor, canvas);
+		if (result == 'delete') {
+			canvas.setCursor('default');
+		} else {
+			canvas.setCursor('pointer');
+			const landscapeCursor = landscape.getCursorPoint(e.clientX, e.clientY, canvas);
+			const cursorPosition = landscape.mouseMove(landscapeCursor);
+		}
+	});
+	canvas.element.addEventListener('mousemove', function(e) {
+		const dx = cursor ? e.clientX - cursor.x : 0;
+		const dy = cursor ? cursor.y - e.clientY : 0;
+		const landscapeCursor = landscape.getCursorPoint(e.clientX, e.clientY, canvas);
+		const cursorPosition = landscape.mouseMove(landscapeCursor);
+		landscape.drag(landscapeCursor, dx, dy);
+
+		cursor.x = e.clientX;
+		cursor.y = e.clientY;
+		if (cursorPosition == 'point') {
+			canvas.setCursor('pointer');
+		} else {
+			canvas.setCursor('default');
+		}
 	});
 
 	document.addEventListener('keydown', function(e: KeyboardEvent) {
-		if (moveScreen) {
-			landscape.go(0);
-			clearInterval(moveScreen);
-			moveScreen = null;
-			return;
-		}
-		if (e.keyCode == 39 && moveScreen === null) { // Right
+		if (e.keyCode == 39) { // Right
 			landscape.go(1);
-			moveScreen = setInterval(function canvasTranslation() {
-				landscape.update();
-				render(canvas, landscape);
-			}, 10);
 		}
-		if (e.keyCode == 37 && moveScreen === null) { // Left
+		if (e.keyCode == 37) { // Left
 			landscape.go(-1);
-			moveScreen = setInterval(function canvasTranslation() {
-				landscape.update();
-				render(canvas, landscape);
-			}, 1);
 		}
 	});
 
 	document.addEventListener('keyup', function(e) {
-		// if (moveScreen) {
-		// 	landscape.go(0);
-		// 	clearInterval(moveScreen);
-		// 	moveScreen = null;
-		// }
+		
 	});
 
 
-	render(canvas, landscape);
+	document.querySelector('.btn-new-layer').addEventListener('click', function(e) {
+		landscape.createNewLayer();
+	});
+
+	document.querySelector('.btn-edit-layer').addEventListener('click', function(e) {
+		landscape.editLayer();
+	});
+
+	document.querySelector('.btn-delete-layer').addEventListener('click', function(e) {
+		landscape.deleteActiveLayer();
+	});
+
+	render();
 }
 
 

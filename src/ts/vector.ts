@@ -108,7 +108,20 @@ export default class Vector {
 		this._length = Math.sqrt(this.length2);
 	}
 
+	public static distance(v1: Vector, v2: Vector) {
+		return Math.sqrt((v1.x - v2.x) * (v1.x - v2.x) + (v1.y - v2.y) * (v1.y - v2.y));
+	}
+
+	public static distance2(v1: Vector, v2: Vector) {
+		return (v1.x - v2.x) * (v1.x - v2.x) + (v1.y - v2.y) * (v1.y - v2.y);
+	}
+
 	public static getMidPoint(v1: Vector, v2: Vector): Vector {
 		return new Vector((v1.x + v2.x) / 2, (v1.y + v2.y) / 2);
+	}
+
+	public static swap(v1: Vector, v2: Vector) {
+		[ v1._x, v2._x ] = [ v2._x, v1._x ];
+		[ v1.y, v2.y ] = [ v2.y, v1.y ];
 	}
 }

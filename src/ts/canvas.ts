@@ -121,6 +121,10 @@ export class Canvas {
 		this.ctx.fill();
 	}
 
+	public setCursor(style: string) {
+		this.$element.style.cursor = style;
+	}
+
 
 	public beginPath(): void {
 		this.ctx.beginPath();
@@ -129,8 +133,9 @@ export class Canvas {
 		this.ctx.fillStyle = color;
 		this.ctx.fill();
 	}
-	public stroke(color: string = DefaultBorderColor): void {
+	public stroke(color: string = DefaultBorderColor, width: number = 1): void {
 		this.ctx.strokeStyle = color;
+		this.ctx.lineWidth = width;
 		this.ctx.stroke();
 	}
 	public checkPoint(point: Vector): boolean {

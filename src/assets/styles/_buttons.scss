@@ -1,0 +1,42 @@
+$new-layer-color: rgb(20, 200, 40);
+$new-layer-color-hover: rgb(120, 200, 40);
+
+
+.btn-plus {
+	position: relative;
+	width: 45px;
+	height: 45px;
+	border: none;
+	background: #ffffff;
+	outline: none;
+	cursor: pointer;
+	padding-top: 15px;
+	padding-bottom: 15px;
+	background-clip: content-box;
+	font-size: 0;
+	line-height: 0;
+	&::before {
+		content: '';
+		display: block;
+		position: absolute;
+		height: 45px;
+		width: 15px;
+		top: 0px;
+		right: 15px;
+		background: #ffffff;
+	}
+
+}
+
+// .btn-new-layer {
+// 	background-color: $new-layer-color;
+// 	&::before {
+// 	background-color: $new-layer-color;
+// 	}
+// 	&:hover {
+// 		background-color: $new-layer-color-hover;
+// 		&::before {
+// 		background-color: $new-layer-color-hover;
+// 		}
+// 	}
+// }
