@@ -11,43 +11,46 @@ import RGBColor from './ts/rgbcolor';
 import { Modal } from './ts/modal';
 
 
-const canvasOptions: ICanvasOptions = {
-	rootSelector: '#root',
-	id: 'canvas',
-	height: 600,
-	width: 1200,
-	backgroundColor: '#f0cba3'
-};
-
-const canvas = new Canvas(canvasOptions);
-const landscapeOptions: LSG.ILandscapeOptions = {
-	layers: layersOptions,
-	width: canvasOptions.width,
-	moveSpeed: 3,
-	height: canvasOptions.height,
-}
-const landscape = new LSG.Landscape(landscapeOptions);
-
-function render() {
-	canvas.clear();
-	canvas.fillCirlce(new Vector(50, 500), 30, 'rgb(255, 255, 255)');
-	landscape.update();
-	landscape.draw(canvas);
-	requestAnimationFrame(render);
-}
-
 function main() {
+		const canvasOptions: ICanvasOptions = {
+		rootSelector: '#root',
+		id: 'canvas',
+		height: 600,
+		width: 1200,
+		backgroundColor: '#f0cba3'
+	};
 
+	const canvas = new Canvas(canvasOptions);
+	const landscapeOptions: LSG.ILandscapeOptions = {
+		layers: layersOptions,
+		width: canvasOptions.width,
+		moveSpeed: 3,
+		height: canvasOptions.height,
+		translateBuffer: 1000,
+		backgroundColor: new RGBColor(240, 200, 172),
+		id: 'root',
+		root: '#root',
+	}
+	const landscape = new LSG.Landscape(landscapeOptions);
+
+	function render() {
+		canvas.clear();
+		canvas.fillCirlce(new Vector(50, 500), 30, 'rgb(255, 255, 255)');
+		landscape.update();
+		landscape.draw(canvas);
+		requestAnimationFrame(render);
+	}
 	let cursor: Vector = new Vector();
 
 	canvas.element.addEventListener('mousedown', function(e) {
 		cursor.x = e.clientX;
 		cursor.y = e.clientY;
-		landscape.setDragMode(canvas, cursor);
+		const landscapeCursor = landscape.getCursorPointFromEvent(e, canvas);
+		landscape.setDragMode(landscapeCursor);
 	});
 
 	canvas.element.addEventListener('click', function(e) {
-		const cursor = landscape.getCursorPoint(e.clientX, e.clientY, canvas);
+		const cursor = landscape.getCursorPointFromEvent(e, canvas);
 		if (e.ctrlKey) {
 			landscape.setActiveLayer(cursor);
 		}
@@ -69,20 +72,25 @@ function main() {
 		}
 		cursor.x = e.clientX;
 		cursor.y = e.clientY;
-		const result = landscape.doubleClick(cursor, canvas);
-		if (result == 'delete') {
-			canvas.setCursor('default');
+		const landscapeCursor = landscape.getCursorPointFromEvent(e, canvas);
+		if (landscape.hasActiveLayer()) {
+			if (landscape.deleteBasePoint(landscapeCursor)) {
+				canvas.setCursor('default');
+				landscape.hover(landscapeCursor);
+			} else {
+				landscape.addBasePoint(landscapeCursor);
+				canvas.setCursor('pointer');
+			}
 		} else {
-			canvas.setCursor('pointer');
-			const landscapeCursor = landscape.getCursorPoint(e.clientX, e.clientY, canvas);
-			const cursorPosition = landscape.mouseMove(landscapeCursor);
+			landscape.setActiveLayer(landscapeCursor);
 		}
 	});
+
 	canvas.element.addEventListener('mousemove', function(e) {
 		const dx = cursor ? e.clientX - cursor.x : 0;
 		const dy = cursor ? cursor.y - e.clientY : 0;
-		const landscapeCursor = landscape.getCursorPoint(e.clientX, e.clientY, canvas);
-		const cursorPosition = landscape.mouseMove(landscapeCursor);
+		const landscapeCursor = landscape.getCursorPointFromEvent(e, canvas);
+		const cursorPosition = landscape.hover(landscapeCursor);
 		landscape.drag(landscapeCursor, dx, dy);
 
 		cursor.x = e.clientX;
@@ -96,24 +104,19 @@ function main() {
 
 	document.addEventListener('keydown', function(e: KeyboardEvent) {
 		if (e.keyCode == 39) { // Right
-			landscape.go(1);
+			landscape.increaseSpeed(1);
 		}
 		if (e.keyCode == 37) { // Left
-			landscape.go(-1);
+			landscape.increaseSpeed(-1);
 		}
 	});
-
-	document.addEventListener('keyup', function(e) {
-		
-	});
-
 
 	document.querySelector('.btn-new-layer').addEventListener('click', function(e) {
 		landscape.createNewLayer();
 	});
 
 	document.querySelector('.btn-edit-layer').addEventListener('click', function(e) {
-		landscape.editLayer();
+		landscape.editActiveLayer();
 	});
 
 	document.querySelector('.btn-delete-layer').addEventListener('click', function(e) {

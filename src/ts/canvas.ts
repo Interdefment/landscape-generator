@@ -55,6 +55,9 @@ export class Canvas {
 		this.clear();
 	}
 
+	/**
+	 * Creates canvas html element inside given root element
+	 */
 	private createElement(options: ICanvasOptions) {
 		this.$element = document.createElement('canvas');
 		this.$element.width = this.width;
@@ -163,7 +166,9 @@ export class Canvas {
 	get element(): HTMLCanvasElement {
 		return this.$element;
 	}
-
+	/**
+	 * Returns vector in px with the beggining at bottom left corner
+	 */
 	public getCursorVector(x: number, y: number) {
 		return new Vector(
 			x - this.$element.offsetLeft,
